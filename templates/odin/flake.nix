@@ -11,7 +11,8 @@
   };
 
   outputs = { self, nixpkgs, my-nix-overlay }: 
-    let
+  let
+    pkgname = "odin_package_name";
     # to work with older version of flakes
     lastModifiedDate = self.lastModifiedDate or self.lastModified or "19700101";
 
@@ -37,34 +38,34 @@
   in
   {
     overlay = final: prev: {
-      hello = with final; stdenv.mkDerivation rec {
-        name = "hello-${version}";
+      odin_package_name = with final; stdenv.mkDerivation rec {
+        name = "${pkgname}-${version}";
         src = ./.;
         buildInputs = [odin-latest];
 
         unpackPhase = ":";
         buildPhase =
             ''
-              odin build $src -out:${name}
+              odin build $src -out:${pkgname}
             '';
 
         installPhase =
             ''
               mkdir -p $out/bin
-              cp ${name} $out/bin/
+              cp ${pkgname} $out/bin/
             '';
       };
     };
     # Provide some binary packages for selected system types.
     packages = forAllSystems (system:
     {
-      inherit (nixpkgsFor.${system}) hello;
+      inherit (nixpkgsFor.${system}) odin_package_name;
     });
 
     # The default package for 'nix build'. This makes sense if the
     # flake provides only one package or there is a clear "main"
     # package.
-    defaultPackage = forAllSystems (system: self.packages.${system}.hello);
+    defaultPackage = forAllSystems (system: self.packages.${system}.${pkgname});
 
 
   };
